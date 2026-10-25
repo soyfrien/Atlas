@@ -1,6 +1,6 @@
 // Minimal service worker: makes Atlas installable and lets the app shell open offline.
 // It never touches /api, /files, /thumbs, /pages or /admin, so archive content and logins always hit the server.
-const CACHE = 'atlas-shell-v1';
+const CACHE = 'atlas-shell-v2';
 const SHELL = ['/', '/app.css', '/common.js', '/index.js', '/icons/icon-192.png', '/manifest.webmanifest'];
 
 self.addEventListener('install', (event) => {

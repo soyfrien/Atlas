@@ -63,6 +63,9 @@ public class WorkflowTests : IClassFixture<TestApp>
         Assert.DoesNotContain(id, await anon.GetStringAsync("/api/docs"));
         Assert.DoesNotContain(id, await anon.GetStringAsync("/api/docs?q=zebracrossing"));
 
+        // the review queue lists items that are still processing as well as pending ones
+        Assert.True((await J(await admin.GetAsync("/api/admin/docs?status=queue"))).GetProperty("items").EnumerateArray().Any(d => d.GetProperty("id").GetString() == id));
+
         // admin can find it by its private text
         var adminSearch = await J(await admin.GetAsync("/api/admin/docs?q=quokkas"));
         Assert.Equal(1, adminSearch.GetProperty("total").GetInt32());

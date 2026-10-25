@@ -245,7 +245,9 @@ public sealed class DocStore
         var match = FtsQuery.Build(q.Q);
         var where = new List<string>();
         var p = new DynamicParameters();
-        if (!string.IsNullOrWhiteSpace(q.Status) && q.Status != "all") { where.Add("d.status=@status"); p.Add("status", q.Status); }
+        // "queue" = everything that needs the admin's attention or is still being worked on.
+        if (q.Status == "queue") where.Add("d.status IN ('processing','pending','publishing','failed')");
+        else if (!string.IsNullOrWhiteSpace(q.Status) && q.Status != "all") { where.Add("d.status=@status"); p.Add("status", q.Status); }
         p.Add("limit", limit); p.Add("offset", offset);
         string from, order, snip;
         if (match is not null)
