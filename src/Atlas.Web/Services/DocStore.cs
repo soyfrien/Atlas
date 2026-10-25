@@ -63,6 +63,12 @@ public sealed class DocStore
         return c.QueryFirstOrDefault<Doc>($"SELECT {Cols} FROM documents d WHERE d.sha256=@sha ORDER BY created_at LIMIT 1", new { sha });
     }
 
+    public string GetOriginalText(string id)
+    {
+        using var c = _db.Open();
+        return c.ExecuteScalar<string?>("SELECT original FROM doc_text WHERE doc_id=@id", new { id }) ?? "";
+    }
+
     public List<string> TagsOf(string id)
     {
         using var c = _db.Open();

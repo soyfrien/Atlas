@@ -187,7 +187,19 @@ function previewFor(d, redactions, drawState) {
 }
 
 function pdfPreview(d, redactions, drawState) {
-  const wrap = h('div', {}, h('p', { class: 'small' }, `${d.pageCount ?? '?'} pages. `, h('a', { href: `/api/admin/docs/${d.id}/original`, target: '_blank', rel: 'noopener' }, 'Open the original PDF')));
+  const n = d.pageCount || 0;
+  const wrap = h('div', {}, h('p', { class: 'small' }, `${n || '?'} pages. `, h('a', { href: `/api/admin/docs/${d.id}/original`, target: '_blank', rel: 'noopener' }, 'Open the original PDF')));
+  if (!n) return wrap;
+  let shown = 0;
+  const more = h('button', { type: 'button', onclick: () => add() }, 'Show more pages');
+  function add() {
+    const end = Math.min(n, shown + 8);
+    for (let i = shown + 1; i <= end; i++) wrap.insertBefore(blockOf(i, `/api/admin/docs/${d.id}/pages/${i}.jpg`, redactions, drawState), more);
+    shown = end;
+    more.hidden = shown >= n;
+  }
+  wrap.append(more);
+  add();
   return wrap;
 }
 

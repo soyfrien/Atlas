@@ -6,14 +6,14 @@ using Microsoft.AspNetCore.Mvc.Testing;
 
 namespace Atlas.Tests;
 
-public sealed class TestApp : WebApplicationFactory<Program>
+public class TestApp : WebApplicationFactory<Program>
 {
     public const string Passcode = "test-passcode-123";
     public string Dir { get; } = Path.Combine(Path.GetTempPath(), "atlas-test-" + Guid.NewGuid().ToString("N"));
     private readonly Dictionary<string, string?> _extra = [];
 
     public TestApp() { }
-    internal TestApp(Dictionary<string, string?> extra) => _extra = extra;
+    protected TestApp(Dictionary<string, string?> extra) => _extra = extra;
 
     protected override void ConfigureWebHost(Microsoft.AspNetCore.Hosting.IWebHostBuilder builder)
     {

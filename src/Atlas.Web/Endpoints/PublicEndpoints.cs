@@ -74,6 +74,17 @@ public static class PublicEndpoints
             return Results.File(path, "image/jpeg", lastModified: File.GetLastWriteTimeUtc(path));
         });
 
+        pub.MapGet("/pages/{id}/{file}", async (string id, string file, HttpContext ctx, DocStore store, PageRenderer pages) =>
+        {
+            if (!DataPaths.IsSafeId(id) || !file.EndsWith(".jpg") || !int.TryParse(file[..^4], out var n)) return Results.NotFound();
+            var doc = store.Get(id);
+            if (doc is not { Status: Status.Published, Kind: Kinds.Pdf }) return Results.NotFound();
+            var path = await pages.RenderAsync(doc, true, n, ctx.RequestAborted);
+            if (path is null) return Results.NotFound();
+            ctx.Response.Headers.CacheControl = "no-cache";
+            return Results.File(path, "image/jpeg", lastModified: File.GetLastWriteTimeUtc(path), entityTag: new EntityTagHeaderValue($"\"{doc.PublicSha256}-{n}\""));
+        });
+
         // ---- pages ----
         string Template(string name) => File.ReadAllText(Path.Combine(env.WebRootPath ?? "wwwroot", name));
 

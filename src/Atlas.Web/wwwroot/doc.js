@@ -14,12 +14,27 @@ function viewer(d) {
       fetch(url).then((r) => r.text()).then((t) => { pre.textContent = t.length > 200000 ? t.slice(0, 200000) + '\n\n… (truncated, download for the full text)' : t; });
       return h('div', { class: 'viewer' }, pre);
     }
-    default: return viewerExtra(d, url);
+    case 'pdf': return pdfViewer(d);
+    default: return h('div', { class: 'panel' }, h('p', {}, 'This file type can\'t be shown in the browser. Use the download button.'));
   }
 }
 
-function viewerExtra(d, url) {
-  return h('div', { class: 'panel' }, h('p', {}, 'This file type can\'t be shown in the browser. Use the download button.'));
+// PDFs are shown as page images (rendered by the server and loaded lazily) so they read well on any phone.
+function pdfViewer(d) {
+  const n = d.pageCount || 0;
+  if (!n) return h('div', { class: 'panel' }, h('p', {}, 'No preview is available. Use the download button.'));
+  const box = h('div', { class: 'viewer pages' });
+  const SHOW = 10;
+  let shown = 0;
+  const more = h('button', { onclick: () => add() }, 'Show more pages');
+  function add() {
+    const end = Math.min(n, shown + SHOW);
+    for (let i = shown + 1; i <= end; i++) box.append(h('img', { src: `/pages/${d.id}/${i}.jpg`, alt: `Page ${i} of ${n}`, loading: 'lazy' }));
+    shown = end;
+    more.hidden = shown >= n;
+  }
+  add();
+  return h('div', {}, box, h('div', { class: 'row center' }, more));
 }
 
 function reportForm(d, cfg) {
