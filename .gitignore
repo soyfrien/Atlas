@@ -1,0 +1,16 @@
+bin/
+obj/
+publish/
+*.user
+.vs/
+.idea/
+TestResults/
+# Never commit secrets or data
+*.env
+.env*
+!deploy/atlas.env.example
+appsettings.*.local.json
+data/
+*.db
+*.db-wal
+*.db-shm
