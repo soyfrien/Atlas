@@ -5,6 +5,7 @@
 # Prerequisites: .NET 8 ASP.NET Core runtime, Caddy, poppler-utils qpdf tesseract-ocr ffmpeg,
 # and (optionally) a data disk mounted at /srv/atlas.
 set -euo pipefail
+umask 022   # Caddy and the service user must be able to read what we install
 
 TARBALL="${1:-/tmp/atlas-publish.tar.gz}"
 SRC_DIR="$(cd "$(dirname "$0")" && pwd)"
@@ -27,7 +28,9 @@ install -m 644 "$SRC_DIR/atlas.service" /etc/systemd/system/atlas.service
 
 # Caddy: keep Atlas in its own file and import it from the main Caddyfile (other sites on the same box are left alone).
 mkdir -p /etc/caddy/conf.d
+chmod 755 /etc/caddy/conf.d
 sed "s/__ATLAS_HOST__/${ATLAS_HOST}/g" "$SRC_DIR/Caddyfile.template" > /etc/caddy/conf.d/atlas.caddy
+chmod 644 /etc/caddy/conf.d/atlas.caddy
 grep -q 'import /etc/caddy/conf.d/\*.caddy' /etc/caddy/Caddyfile 2>/dev/null || echo 'import /etc/caddy/conf.d/*.caddy' >> /etc/caddy/Caddyfile
 
 systemctl daemon-reload

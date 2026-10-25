@@ -66,7 +66,7 @@ async function main() {
   document.getElementById('site-title').textContent = cfg.title;
   const meta = [KIND_LABEL[d.kind] || d.kind, d.date ? 'Dated ' + fmtDate(d.date) : null, d.durationSec ? fmtDur(d.durationSec) : null,
     d.pageCount > 1 ? d.pageCount + ' pages' : null, fmtBytes(d.sizeBytes), d.publishedAt ? 'Published ' + fmtDate(d.publishedAt) : null].filter(Boolean);
-  app.replaceChildren(
+  app.replaceChildren(...[
     h('h2', {}, d.title),
     h('div', { class: 'row' }, verificationBadge(d.verification), h('span', { class: 'meta' }, meta.map((m) => h('span', {}, m)))),
     d.tags.length ? h('div', { class: 'tags', style: 'margin-top:10px' }, d.tags.map((t) => h('a', { class: 'tag', href: '/?tag=' + encodeURIComponent(t) }, t))) : null,
@@ -74,13 +74,13 @@ async function main() {
     viewer(d),
     h('div', { class: 'row' },
       h('a', { class: 'btn primary', href: `/files/${d.id}/download` }, 'Download'),
-      d.kind === 'pdf' ? h('a', { class: 'btn', href: `/files/${d.id}`, target: '_blank', rel: 'noopener' }, 'Open original PDF') : null),
+      d.kind === 'pdf' ? h('a', { class: 'btn', href: `/files/${d.id}`, target: '_blank', rel: 'noopener' }, 'Open PDF') : null),
     h('div', { class: 'panel' },
       h('div', { class: 'small' }, 'SHA-256 of the file offered for download. Compare it with the output of ', h('code', {}, 'sha256sum'), ' to check your copy is intact.'),
       h('div', { class: 'hash', style: 'margin-top:8px' }, d.sha256 || ''),
       h('div', { class: 'row', style: 'margin-top:8px' }, h('button', { onclick: async (e) => { if (await copyText(d.sha256)) e.target.textContent = 'Copied'; } }, 'Copy hash')),
       h('div', { class: 'small', style: 'margin-top:8px' }, 'Embedded metadata (such as camera, location or author fields) is removed from published copies.')),
-    reportForm(d, cfg));
+    reportForm(d, cfg)].filter(Boolean));
 }
 
 main().catch((e) => {

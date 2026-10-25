@@ -36,7 +36,7 @@ async function shell(active, content) {
       h('a', { class: 'btn', href: '/', target: '_blank', rel: 'noopener' }, 'View site'),
       h('button', { onclick: async () => { await api('/api/logout', { method: 'POST' }); loginView(); } }, 'Sign out'))),
     h('div', { class: 'tabs' },
-      tab('queue', 'Review queue', '#/queue', c.pending), tab('published', 'Published', '#/published', c.published),
+      tab('queue', 'Review queue', '#/queue', (c.pending || 0) + (c.processing || 0) + (c.publishing || 0) + (c.failed || 0)), tab('published', 'Published', '#/published', c.published),
       tab('rejected', 'Rejected', '#/rejected', c.rejected), tab('all', 'All', '#/all'),
       tab('reports', 'Reports', '#/reports', stats.openReports), tab('upload', 'Upload', '#/upload'), tab('settings', 'Settings', '#/settings')),
     content);
@@ -57,7 +57,7 @@ async function listView(key, status) {
     if (search.value.trim()) p.set('q', search.value.trim());
     let r;
     try { r = await api('/api/admin/docs?' + p); } catch (e) { return e.status === 401 ? loginView() : list.replaceChildren(h('p', { class: 'error' }, e.message)); }
-    list.replaceChildren(r.items.length ? r.items.map(listItem) : h('div', { class: 'empty' }, status === 'pending' ? 'Nothing is waiting for review.' : 'Nothing here.'));
+    list.replaceChildren(...(r.items.length ? r.items.map(listItem) : [h('div', { class: 'empty' }, status === 'queue' ? 'Nothing is waiting for review.' : 'Nothing here.')]));
     stopPolling();
     if (r.items.some((d) => d.status === 'processing' || d.status === 'publishing')) pollTimer = setTimeout(refresh, 3000);
   }
@@ -206,7 +206,7 @@ function pdfPreview(d, redactions, drawState) {
 async function reviewView(id) {
   stopPolling();
   let d;
-  try { d = await api('/api/admin/docs/' + id); } catch (e) { return e.status === 401 ? loginView() : listView('queue', 'pending'); }
+  try { d = await api('/api/admin/docs/' + id); } catch (e) { return e.status === 401 ? loginView() : listView('queue', 'queue'); }
   const busy = d.status === 'processing' || d.status === 'publishing';
   const redactions = d.redactions.map((r) => ({ ...r }));
   const drawState = { on: false, overlays: [], changed: () => { dirty = true; redactNote.textContent = redactions.length ? `${redactions.length} redaction box(es) will be burned into the published copy.` : ''; } };
@@ -297,14 +297,14 @@ async function reportsView() {
   stopPolling();
   let reports = [];
   const list = h('div', {});
-  const draw = () => list.replaceChildren(reports.length ? reports.map((r) => h('div', { class: 'panel' },
+  const draw = () => list.replaceChildren(...(reports.length ? reports.map((r) => h('div', { class: 'panel' },
     h('div', { class: 'row' }, h('strong', {}, r.reason), h('span', { class: 'badge ' + (r.status === 'open' ? 'warn' : 'muted') }, r.status), h('span', { class: 'small' }, fmtDateTime(r.createdAt))),
     h('p', { class: 'pre' }, r.message),
     r.contact ? h('div', { class: 'small' }, 'Contact: ', r.contact) : null,
     h('div', { class: 'small' }, 'About: ', h('a', { href: '#/review/' + r.docId }, r.docTitle)),
     h('div', { class: 'row mt' },
       h('button', { onclick: async () => { await api(`/api/admin/reports/${r.id}/status`, { json: { status: r.status === 'open' ? 'resolved' : 'open' } }); reportsView(); } }, r.status === 'open' ? 'Mark resolved' : 'Reopen'),
-      h('button', { class: 'danger', onclick: async () => { await api('/api/admin/reports/' + r.id, { method: 'DELETE' }); reportsView(); } }, 'Delete')))) : h('div', { class: 'empty' }, 'No takedown or problem reports.'));
+      h('button', { class: 'danger', onclick: async () => { await api('/api/admin/reports/' + r.id, { method: 'DELETE' }); reportsView(); } }, 'Delete')))) : [h('div', { class: 'empty' }, 'No takedown or problem reports.')]));
   const stats = await shell('reports', list);
   if (!stats) return;
   reports = await api('/api/admin/reports');
@@ -352,7 +352,7 @@ async function route() {
     case 'reports': return reportsView();
     case 'upload': return uploadView();
     case 'settings': return settingsView();
-    default: return listView('queue', 'pending');
+    default: return listView('queue', 'queue');
   }
 }
 
