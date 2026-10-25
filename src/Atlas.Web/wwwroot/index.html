@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Atlas</title>
+<meta name="description" content="A public archive of documents, recordings and images.">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+<meta name="theme-color" content="#0e1116">
+<link rel="stylesheet" href="/app.css">
+</head>
+<body>
+<div class="wrap">
+  <header class="site"><h1><a href="/" id="site-title">Atlas</a></h1></header>
+  <p class="intro" id="intro"></p>
+  <form id="search" role="search" class="row">
+    <input class="grow" type="search" name="q" id="q" placeholder="Search titles, descriptions and the text inside documents" aria-label="Search" autocomplete="off" enterkeyhint="search">
+    <button class="primary" type="submit">Search</button>
+  </form>
+  <div class="filters" id="filters">
+    <div><label for="f-kind">Type</label><select id="f-kind"><option value="">All types</option></select></div>
+    <div><label for="f-ver">Verification</label><select id="f-ver"><option value="">Any</option></select></div>
+    <div><label for="f-tag">Tag</label><select id="f-tag"><option value="">All tags</option></select></div>
+    <div><label for="f-from">Dated from</label><input type="date" id="f-from"></div>
+    <div><label for="f-to">Dated to</label><input type="date" id="f-to"></div>
+  </div>
+  <div id="status" class="small" role="status"></div>
+  <div class="grid" id="results"></div>
+  <div class="row center mt"><button id="more" hidden>Load more</button></div>
+  <footer class="site" id="footer"></footer>
+</div>
+<script type="module" src="/index.js"></script>
+</body>
+</html>
