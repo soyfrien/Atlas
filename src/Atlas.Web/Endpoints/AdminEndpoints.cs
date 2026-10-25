@@ -103,6 +103,14 @@ public static class AdminEndpoints
             DataPaths.IsSafeId(id) && store.Get(id) is { HasThumbOriginal: true } && File.Exists(paths.ThumbOriginal(id))
                 ? Results.File(paths.ThumbOriginal(id), "image/jpeg") : Results.NotFound());
 
+        // Page images of a PDF: src=original (default) or public (the published copy).
+        admin.MapGet("/docs/{id}/pages/{n:int}.jpg", async (string id, int n, string? src, HttpContext ctx, DocStore store, PageRenderer pages) =>
+        {
+            if (!DataPaths.IsSafeId(id) || store.Get(id) is not { } d) return Results.NotFound();
+            var path = await pages.RenderAsync(d, src == "public", n, ctx.RequestAborted);
+            return path is null ? Results.NotFound() : Results.File(path, "image/jpeg");
+        });
+
         // ---------- uploads ----------
         admin.MapPost("/uploads", (InitUpload req, UploadService up) => Upload(() => Results.Ok(up.Init(req.Name, req.Size))));
         admin.MapGet("/uploads/{id}", (string id, UploadService up) => Upload(() => Results.Ok(up.GetStatus(id))));
