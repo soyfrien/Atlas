@@ -1,0 +1,36 @@
+[Unit]
+Description=Atlas document archive (ASP.NET Core)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=atlas-app
+Group=atlas-app
+WorkingDirectory=/opt/atlas
+ExecStart=/usr/bin/dotnet /opt/atlas/Atlas.Web.dll
+Restart=always
+RestartSec=5
+# Secrets (ATLAS_PASSCODE) live only here, outside the repo.
+EnvironmentFile=/etc/atlas/atlas.env
+Environment=ASPNETCORE_ENVIRONMENT=Production
+Environment=ASPNETCORE_URLS=http://127.0.0.1:5100
+Environment=DOTNET_CLI_TELEMETRY_OPTOUT=1
+Environment=HOME=/var/lib/atlas/home
+Environment=XDG_CACHE_HOME=/var/lib/atlas/home/.cache
+Environment=Atlas__DataDir=/srv/atlas/data
+StateDirectory=atlas atlas/home
+StateDirectoryMode=0700
+# Hardening
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/srv/atlas /var/lib/atlas
+# Small VM: keep the app (and its ffmpeg/tesseract children) from starving sshd, caddy and other services.
+MemoryHigh=480M
+MemoryMax=620M
+TimeoutStopSec=30
+
+[Install]
+WantedBy=multi-user.target
